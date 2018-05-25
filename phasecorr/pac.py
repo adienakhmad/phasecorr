@@ -14,7 +14,7 @@ def _shift_bit_length(x):
     :param x: must be a positive integer
     :return:
     """
-    return 1 << (x-1).bit_length()
+    return 1 << (x - 1).bit_length()
 
 
 def _pcc_analytics(trace):
@@ -33,14 +33,20 @@ def _pcc_analytics(trace):
     freq_domain[1:half] *= 2  # left the dc component untouched
     freq_domain[half:] = 0
 
-    time_domain = _np.fft.ifft(freq_domain)
+    analytic_signal = _np.fft.ifft(freq_domain)
 
-    return time_domain[:n]
+    return analytic_signal[:n]
 
 
-def _phase_autocorr_at(analytic_signal, sample_lag):
-    """ Calculate phase auto-correlation from hilbert function array at given sample_lag
-    :param analytic_signal: hilbert transform of a source signal
+def _phase_autocorr_at(instantaneous_phase, sample_lag):
+    """ Calculate phase auto-correlation from instantaneous phase array at given sample_lag
+
+    Equation (5)
+    Schimmel, Martin. (1999).
+    Phase cross-correlations: Design, comparisons, and applications.
+    Bulletin of the Seismological Society of America. 89. 1366-378.
+
+    :param instantaneous_phase: hilbert transform of a source signal
     :param sample_lag: number of lag (shift) in sample
     :return: phase auto-correlation of hilbert_function evaluated at sample_lag
     """
@@ -48,19 +54,14 @@ def _phase_autocorr_at(analytic_signal, sample_lag):
     if sample_lag == 0:
         return 1
 
-    length = analytic_signal.size - sample_lag
-    signal1 = analytic_signal[sample_lag:]
-    signal2 = analytic_signal[:length]
+    length = instantaneous_phase.size - sample_lag
+    signal1 = instantaneous_phase[sample_lag:]
+    signal2 = instantaneous_phase[:length]
+    diff = _np.subtract(signal1, signal2) / 2
+    sum_cos_sin = _np.sum(_np.abs(_np.cos(diff)) -
+                          _np.abs(_np.sin(diff))) / length
 
-    # left and right term relates to the equation(4) in the paper
-    # Schimmel, Martin. (1999).
-    # Phase cross-correlations: Design, comparisons, and applications.
-    # Bulletin of the Seismological Society of America. 89. 1366-378.
-    left_term = _np.sum(_np.abs(signal1 + signal2))
-    right_term = _np.sum(_np.abs(signal1 - signal2))
-
-    diff = left_term - right_term
-    return _np.asscalar(diff * (0.5 / length))
+    return _np.asscalar(sum_cos_sin)
 
 
 class PhaseAutocorr(object):
@@ -100,7 +101,7 @@ class PhaseAutocorr(object):
     @staticmethod
     def __instant_phase(trace):
         analytic = _pcc_analytics(trace)
-        return analytic / _np.abs(analytic)
+        return _np.angle(analytic)
 
     @classmethod
     def __calc_at_trace(cls, trace, sample_lags):
@@ -124,13 +125,12 @@ class PhaseAutocorr(object):
         inst_phase = cls.__instant_phase(trace)
         sample_lags = range(trace.data.size) if sample_lags is None else sample_lags
 
-        # size times 2, since complex64 uses 2x the size of float32
-        raw_arr = _mp.RawArray(ctypes.c_float, inst_phase.size * 2)
-        buffer_as_numpy = _np.frombuffer(raw_arr, dtype=_np.complex64)
+        raw_arr = _mp.RawArray(ctypes.c_float, inst_phase.size)
+        buffer_as_numpy = _np.frombuffer(raw_arr, dtype=_np.float32)
         _np.copyto(buffer_as_numpy, inst_phase)
 
         with _mp.Pool(processes=number_of_processes) as pool:
-            result = pool.map(_PacParallel(raw_arr, dtype=_np.complex64), sample_lags)
+            result = pool.map(_PacParallel(raw_arr, dtype=_np.float32), sample_lags)
 
         out_trace = _obspy.core.trace.Trace(header=trace.stats)
         out_trace.data = _np.array(result)
@@ -141,6 +141,7 @@ class _PacParallel(object):
     """
     Helper class to calculate pac in parallel, meant to be passed to pool.map
     """
+
     def __init__(self, mp_raw_array, dtype):
         self._numpy_arr = _np.frombuffer(mp_raw_array, dtype=dtype)
 
