@@ -1,6 +1,7 @@
 import numpy as _np
 import obspy as _obspy
 import multiprocessing as _mp
+import scipy.fftpack as _scf
 import ctypes
 
 __all__ = ['PhaseAutocorr']
@@ -25,12 +26,11 @@ def _pcc_analytics(trace):
     nfft = _shift_bit_length(n)
     half = nfft // 2
 
-    signal_as_c = trace.data.astype(dtype=_np.complex64)
-    c_signal = _np.zeros(nfft, dtype=_np.complex64)
-    c_signal[0:signal_as_c.size] = signal_as_c
+    padded_signal = _np.zeros(nfft, dtype=_np.float32)
+    padded_signal[0:trace.data.size] = trace.data
 
-    freq_domain = _np.fft.fft(c_signal)
-    freq_domain[1:half] *= 2
+    freq_domain = _scf.fft(padded_signal)
+    freq_domain[1:half] *= 2  # left the dc component untouched
     freq_domain[half:] = 0
 
     time_domain = _np.fft.ifft(freq_domain)
