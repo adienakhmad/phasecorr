@@ -26,16 +26,14 @@ def _pcc_analytics(trace):
     nfft = _shift_bit_length(n)
     half = nfft // 2
 
-    padded_signal = _np.zeros(nfft, dtype=_np.float32)
-    padded_signal[0:trace.data.size] = trace.data
-
-    freq_domain = _scf.fft(padded_signal)
+    freq_domain = _scf.fft(trace.data, nfft)
     freq_domain[1:half] *= 2  # left the dc component untouched
     freq_domain[half:] = 0
 
     analytic_signal = _np.fft.ifft(freq_domain)
 
-    return analytic_signal[:n]
+    # cast to complex64 to improve subsequent operation
+    return analytic_signal[:n].astype(dtype=_np.complex64)
 
 
 def _phase_autocorr_at(instantaneous_phase, sample_lag):
