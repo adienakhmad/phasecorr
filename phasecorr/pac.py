@@ -28,7 +28,7 @@ def _pcc_analytics(trace):
 
     freq_domain = _scf.fft(trace.data, nfft)
     freq_domain[1:half] *= 2  # left the dc component untouched
-    freq_domain[half:] = 0
+    freq_domain[half+1:] = 0  # left the n/2 component untouched
 
     analytic_signal = _np.fft.ifft(freq_domain)
 
