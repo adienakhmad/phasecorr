@@ -1,5 +1,6 @@
 import numpy as _np
 import scipy.fftpack as _scf
+import scipy.signal as _scs
 import warnings as _warning
 import multiprocessing as _mp
 import ctypes as _ctypes
@@ -9,8 +10,8 @@ __all__ = ['phasecorr']
 
 def xcorr(signal1, signal2, **kwargs):
     kwargs['mode'] = 'pcc'
-    phases1 = __instantphase(signal1)
-    phases2 = __instantphase(signal2)
+    phases1 = __instantphase(signal1, **kwargs)
+    phases2 = __instantphase(signal2, **kwargs)
 
     lags = __default_lags_if_not_set(signal1, signal2, **kwargs)
 
@@ -22,7 +23,7 @@ def xcorr(signal1, signal2, **kwargs):
 
 def acorr(signal1, **kwargs):
     kwargs['mode'] = 'pac'
-    phase1 = __instantphase(signal1)
+    phase1 = __instantphase(signal1, **kwargs)
 
     lags = __default_lags_if_not_set(signal1, signal1, **kwargs)
 
@@ -32,13 +33,20 @@ def acorr(signal1, **kwargs):
         return __phase_xcorr(phase1, phase1, lags)
 
 
-def __instantphase(real_signal):
+def __instantphase(real_signal, **kwargs):
     """
     Calculate the instantaneous phase for a given real signal
     :param real_signal:
     :return: real-valued array of phases
     """
-    return _np.angle(_analytic_signal(real_signal))
+    method = kwargs.get('analytic', 'fft')
+
+    if method == 'fft':
+        return _np.angle(_analytic_signal(real_signal))
+    elif method == 'hilbert':
+        return _np.angle(_scs.hilbert(real_signal))
+    else:
+        raise ValueError('Unknown analytic parameter', method, ' valid options: fft, hilbert')
 
 
 def _analytic_signal(real_signal):
