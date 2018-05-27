@@ -5,10 +5,21 @@ import warnings as _warning
 import multiprocessing as _mp
 import ctypes as _ctypes
 
-__all__ = ['phasecorr']
+__all__ = ['xcorr', 'acorr']
 
 
 def xcorr(signal1, signal2, **kwargs):
+    """
+    Calculate phase cross correlation (pcc)
+    between signal1 and signal2
+
+    For this purpose signal2 is shifted in time and compared to
+    corresponding portion in signal1
+    :param signal1: 1-D numpy array
+    :param signal2: 1-D numpy array
+    :param kwargs:
+    :return: 1-D numpy array
+    """
     kwargs['mode'] = 'pcc'
     phases1 = __instantphase(signal1, **kwargs)
     phases2 = __instantphase(signal2, **kwargs)
@@ -22,6 +33,13 @@ def xcorr(signal1, signal2, **kwargs):
 
 
 def acorr(signal1, **kwargs):
+    """
+    Calculate phase auto-correlation (pac) of signal1
+
+    :param signal1: 1-D numpy array
+    :param kwargs:
+    :return: 1-D numpy array
+    """
     kwargs['mode'] = 'pac'
     phase1 = __instantphase(signal1, **kwargs)
 

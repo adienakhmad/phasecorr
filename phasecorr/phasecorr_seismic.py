@@ -3,6 +3,8 @@ from obspy.core import stream as _st
 import warnings as _warning
 import phasecorr.phasecorr as phasecorr
 
+__all__ = ['xcorr', 'acorr']
+
 
 def xcorr(seismic_signal, wavelet, **kwargs):
     """
