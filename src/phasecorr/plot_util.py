@@ -1,5 +1,5 @@
 import numpy as np
-import pylab as plt
+import matplotlib.pyplot as plt
 
 
 def wiggle_plot(st, figsize, color='black', color_top='red', color_below='blue', normalization_factor=1.0, skipinterval=1, offset = 0):
@@ -28,7 +28,6 @@ def wiggle_plot(st, figsize, color='black', color_top='red', color_below='blue',
         ax.fill_betweenx(times, i, norm_data + i, where=(norm_data + i > i), color=color_top)
         ax.fill_betweenx(times, i, norm_data + i, where=(norm_data + i < i), color=color_below)
 
-    print(ax.get_ylim())
     ax.set_ylim(-0.02, ax.get_ylim()[1] + 0.02)
     ax.set_xlim(-2, len(st) + 0.5)
     ax.invert_yaxis()

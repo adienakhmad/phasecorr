@@ -1,5 +1,5 @@
 import numpy as _np
-import scipy.fftpack as _scf
+import scipy.fft as _scf
 import scipy.signal as _scs
 import warnings as _warning
 import multiprocessing as _mp
@@ -98,11 +98,8 @@ def _analytic_signal(real_signal):
 def __phase_xcorr(signal1_phases, signal2_phases, range_lags):
     pcc_signal = _np.empty(len(range_lags), dtype=_np.float32)
 
-    pccset = pcc_signal.itemset
-
-    for i in range(len(range_lags)):
-        val = _phase_xcorr_at(signal1_phases, signal2_phases, range_lags[i])
-        pccset(i, val)
+    for i, lag in enumerate(range_lags):
+        pcc_signal[i] = _phase_xcorr_at(signal1_phases, signal2_phases, lag)
 
     return pcc_signal
 
@@ -187,7 +184,7 @@ def __pcc_at_lag(signal1_phases, signal2_phases, sample_lag, n_overlap):
     _pcc = _np.sum(_np.abs(_np.cos(diff)) -
                    _np.abs(_np.sin(diff))) / n_overlap
 
-    return _np.asscalar(_pcc)
+    return _pcc.item()
 
 
 # region helper functions

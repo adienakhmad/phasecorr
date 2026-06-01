@@ -3,12 +3,25 @@ Python implementation of amplitude-unbiased, phase-based correlation technique p
 
 > Schimmel, Martin. (1999). [Phase cross-correlations: Design, comparisons, and applications](https://www.researchgate.net/publication/228578991_Phase_cross-correlations_Design_comparisons_and_applications). Bulletin of the Seismological Society of America. 89. 1366-378. 
 
+## Installation
+
+```bash
+pip install phasecorr
+
+# optional extras:
+#  - seismic file support (obspy) 
+#  - seismic wiggle plot  (matplotlib)
+pip install phasecorr[seismic,plot]
+```
+
+Requires Python 3.11 or newer.
+
 ## Quick Intro
 
-There are two main module `phasecorr` and `phasecorr_seismic`. 
+There are two main modules `phasecorr` and `phasecorr_seismic`. 
 The former is written to work with regular 1-D numpy array, while the latter is a wrapper to simplify working with seismic files.
 
-There are two function in either `phasecorr` and `phasecorr_seismic` namely `xcorr` for cross-corelation and `acorr` for auto-correlation.
+There are two functions in either `phasecorr` and `phasecorr_seismic` namely `xcorr` for cross-correlation and `acorr` for auto-correlation.
 
 Some switches are availble to be passed to either function to control its behavior.
 - `lags = range(min, max, step)` : control which sample lag are calculated, use regular Python 3 `range` object 
@@ -19,12 +32,6 @@ Some switches are availble to be passed to either function to control its behavi
 
 - `tlags = (tmin, tmax) ` : only for `phasecorr_seismic`. Tuple of tmin and tmax. Serve the same purpose as `lags` but use relative second instead. Require sampling rate information in the seismic files to be correct.
 - `step` : only applicable if `tlags` is set, control the step between sample lag to be calculated.
-## Dependency
-
-1. numpy
-2. scipy
-3. [obspy](https://github.com/obspy/obspy) - only for `phasecorr_seismic`
-
 ## Example
 
 Cross-corelation from numpy array
@@ -59,7 +66,7 @@ signal[5:8] = [0.5, 2, 0.5]
 pac = acorr(signal, lags=range(-5, 6))
 
 # pac (rounded to 2-decimal places for this demonstration only)
-# [-0.2   0.09  0.33  0.54  0.72  1.    0.72  0.54  0.33  0.09 -0.2 ]
+# [0.    0.27  0.5   0.69  0.87  1.    0.87  0.69  0.5   0.27  0.  ]
 ```
 
 Cross-correlation from seismic files

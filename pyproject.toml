@@ -1,0 +1,41 @@
+[project]
+name = "phasecorr"
+version = "0.1.0"
+description = "Amplitude-unbiased phase cross/auto correlation (Schimmel, 1999)"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+authors = [{ name = "Adien Akhmad", email = "adien.akhmad@gmail.com" }]
+keywords = ["seismology", "cross-correlation", "signal-processing", "phase"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+    "Intended Audience :: Science/Research",
+]
+dependencies = [
+    "numpy>=2.1",
+    "scipy>=1.14",
+]
+
+[project.optional-dependencies]
+seismic = ["obspy>=1.4"]
+plot = ["matplotlib>=3.10", "obspy>=1.4"]
+
+[project.urls]
+Homepage = "https://github.com/adienakhmad/phasecorr"
+Repository = "https://github.com/adienakhmad/phasecorr"
+Issues = "https://github.com/adienakhmad/phasecorr/issues"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.17,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+target-version = "py311"
